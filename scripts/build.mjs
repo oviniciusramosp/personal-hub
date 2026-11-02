@@ -1,0 +1,17 @@
+import {readFile,mkdir,writeFile} from 'node:fs/promises';
+import {randomBytes,pbkdf2Sync,createCipheriv} from 'node:crypto';
+const password=process.env.PORTAL_PASSWORD;
+if(!password||password.length<20)throw new Error('Defina PORTAL_PASSWORD com pelo menos 20 caracteres.');
+const catalog=JSON.parse(await readFile('.local/catalog.json','utf8'));
+const template=await readFile('src/portal.html','utf8');
+const html=template.replace('/*CATALOG_DATA*/',JSON.stringify(catalog).replaceAll('<','\\u003c'));
+const salt=randomBytes(16),iv=randomBytes(12),iterations=600000;
+const key=pbkdf2Sync(password,salt,iterations,32,'sha256');
+const cipher=createCipheriv('aes-256-gcm',key,iv);
+const encrypted=Buffer.concat([cipher.update(html,'utf8'),cipher.final(),cipher.getAuthTag()]);
+const payload={salt:salt.toString('base64'),iv:iv.toString('base64'),iterations,data:encrypted.toString('base64')};
+const lock=await readFile('src/lock.html','utf8');
+await mkdir('dist',{recursive:true});
+await writeFile('dist/index.html',lock.replace('/*ENCRYPTED_PAYLOAD*/',JSON.stringify(payload)));
+await writeFile('dist/.nojekyll','');
+console.log('Build criptografado em dist/. Nenhum dado do catálogo publicado em texto aberto.');

@@ -1,0 +1,5 @@
+.inventory-local.json
+.local/
+dist/
+node_modules/
+graphify-out/cache/
