@@ -39,7 +39,7 @@ function mockPreview(entry,group){
   if(live||docs){img=element('img');img.alt=live?'Captura da versão publicada de '+name:'Ilustração de documento: '+name;img.width=live?entry.preview.width:640;img.height=live?entry.preview.height:400;img.loading='lazy';img.decoding='async';img.src=live?entry.preview.image:'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(documentPreview(entry,group));button.append(img)}
   else if(entry.preview?.html){button.append(createMockFrame(entry))}
   else{throw new Error('Prévia HTML/CSS ausente: '+entry.name)}
-  button.append(element('span',live?'Captura live':docs?'Documentação':'Mock HTML/CSS · dados fictícios','preview-label'));
+  if(live||docs)button.append(element('span',live?'Captura live':'Documentação','preview-label'));
   button.addEventListener('click',()=>{
     const dialog=$('#preview-dialog'),content=$('#preview-content');
     content.querySelectorAll('.expanded-mock-canvas').forEach(node=>previewResize.unobserve(node));
