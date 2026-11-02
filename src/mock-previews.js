@@ -31,20 +31,21 @@ function createMockFrame(entry, expanded=false) {
 }
 function mockPreview(entry,group){
   const button=element('button',null,'preview-banner');button.type='button';
-  const docs=entry.preview?.type==='document',name=entry.displayName||entry.name;
-  button.setAttribute('aria-label','Ampliar '+(docs?'banner documental':'mock HTML/CSS')+' de '+name);
+  const live=entry.preview?.type==='screenshot',docs=entry.preview?.type==='document',name=entry.displayName||entry.name;
+  if(live)button.classList.add('live-capture');
+  button.setAttribute('aria-label','Ampliar '+(live?'captura live':docs?'banner documental':'mock HTML/CSS')+' de '+name);
   button.title='Ampliar prévia';
   let img;
-  if(docs){img=element('img');img.alt='Ilustração de documento: '+name;img.width=640;img.height=400;img.loading='lazy';img.decoding='async';img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(documentPreview(entry,group));button.append(img)}
+  if(live||docs){img=element('img');img.alt=live?'Captura da versão publicada de '+name:'Ilustração de documento: '+name;img.width=live?entry.preview.width:640;img.height=live?entry.preview.height:400;img.loading='lazy';img.decoding='async';img.src=live?entry.preview.image:'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(documentPreview(entry,group));button.append(img)}
   else if(entry.preview?.html){button.append(createMockFrame(entry))}
   else{throw new Error('Prévia HTML/CSS ausente: '+entry.name)}
-  button.append(element('span',docs?'Documentação':'Mock HTML/CSS · dados fictícios','preview-label'));
+  button.append(element('span',live?'Captura live':docs?'Documentação':'Mock HTML/CSS · dados fictícios','preview-label'));
   button.addEventListener('click',()=>{
     const dialog=$('#preview-dialog'),content=$('#preview-content');
     content.querySelectorAll('.expanded-mock-canvas').forEach(node=>previewResize.unobserve(node));
     content.replaceChildren();$('#preview-title').textContent=name;
-    if(docs){const expanded=element('img');expanded.src=img.src;expanded.alt=img.alt;content.append(expanded)}else{content.append(createMockFrame(entry,true))}
-    $('#preview-note').textContent=docs?'Ilustração de documentação do projeto.':'Mock estático em HTML/CSS, com a estrutura e os estilos do aplicativo e dados fictícios.';
+    if(live||docs){const expanded=element('img');expanded.src=img.src;expanded.alt=img.alt;content.append(expanded)}else{content.append(createMockFrame(entry,true))}
+    $('#preview-note').textContent=live?'Captura da versão publicada em '+date(entry.preview.capturedAt)+'.':docs?'Ilustração de documentação do projeto.':'Mock estático em HTML/CSS, com a estrutura e os estilos do aplicativo e dados fictícios.';
     dialog.showModal();
   });return button;
 }
