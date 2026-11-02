@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {webcrypto} from 'node:crypto';
 import vm from 'node:vm';
+import {gunzipSync} from 'node:zlib';
 let password='';for await(const chunk of process.stdin)password+=chunk;password=password.trim();
 const page=await readFile('dist/index.html','utf8');
 const match=page.match(/const payload=(\{[^\n]+\});/);
@@ -10,7 +11,7 @@ const payload=JSON.parse(match[1]);
 const catalog=JSON.parse(await readFile('.local/catalog.json','utf8'));
 for(const entry of catalog.entries.filter(e=>e.private))assert.ok(!page.includes(entry.name),'Nome privado ausente do HTML público');
 assert.ok(!page.includes(password),'Senha ausente do HTML');
-async function decrypt(secret){const material=await webcrypto.subtle.importKey('raw',new TextEncoder().encode(secret),'PBKDF2',false,['deriveKey']);const key=await webcrypto.subtle.deriveKey({name:'PBKDF2',salt:Buffer.from(payload.salt,'base64'),iterations:payload.iterations,hash:'SHA-256'},material,{name:'AES-GCM',length:256},false,['decrypt']);return new TextDecoder().decode(await webcrypto.subtle.decrypt({name:'AES-GCM',iv:Buffer.from(payload.iv,'base64')},key,Buffer.from(payload.data,'base64')));}
+async function decrypt(secret){const material=await webcrypto.subtle.importKey('raw',new TextEncoder().encode(secret),'PBKDF2',false,['deriveKey']);const key=await webcrypto.subtle.deriveKey({name:'PBKDF2',salt:Buffer.from(payload.salt,'base64'),iterations:payload.iterations,hash:'SHA-256'},material,{name:'AES-GCM',length:256},false,['decrypt']);const clear=await webcrypto.subtle.decrypt({name:'AES-GCM',iv:Buffer.from(payload.iv,'base64')},key,Buffer.from(payload.data,'base64'));return new TextDecoder().decode(payload.compression==='gzip'?gunzipSync(Buffer.from(clear)):clear);}
 await assert.rejects(decrypt(password+'incorreta'));
 const html=await decrypt(password);
 assert.ok(html.includes('https://oviniciusramosp.github.io/gridfinity-generator/'));

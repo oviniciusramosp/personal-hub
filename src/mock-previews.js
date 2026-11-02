@@ -1,103 +1,50 @@
-// Illustrative main-screen previews. All displayed people, amounts and activity are fictitious.
-// Each preview is an isolated SVG image, generated locally without external assets or requests.
-function previewSVG(entry,group){
- const p=entry.preview||{type:'document',screen:entry.displayName||entry.name,subtitle:'Materiais do projeto'};
- const accent=themes[group].accent,ink='#e9edf5',muted='#94a1b6',panel='#172131',edge='#29364a';
- const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
- const box=(x,y,w,h,fill=panel,r=8,stroke='none')=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="${fill}" stroke="${stroke}"/>`;
- const txt=(x,y,value,size=12,color=ink,weight=400)=>`<text x="${x}" y="${y}" fill="${color}" font-size="${size}" font-weight="${weight}" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Arial,sans-serif">${esc(value)}</text>`;
- const line=(x,y,x2,y2,color=edge,width=1)=>`<path d="M${x} ${y}L${x2} ${y2}" fill="none" stroke="${color}" stroke-width="${width}"/>`;
- const dot=(x,y,r,fill)=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${fill}"/>`;
- const path=(d,color,width=2,fill='none')=>`<path d="${d}" stroke="${color}" stroke-width="${width}" fill="${fill}" stroke-linecap="round" stroke-linejoin="round"/>`;
- const lines=(x,y,width,count,color=edge)=>Array.from({length:count},(_,i)=>box(x,y+i*10,width-(i%3)*14,3,color,1)).join('');
- const pill=(x,y,label,color=accent)=>box(x,y-12,Math.max(44,label.length*5.8+16),20,color,6)+txt(x+8,y+1,label,9,'#10151b',650);
- function spark(x,y,w,h,seed=0,color=accent){let d='';for(let i=0;i<16;i++){const a=(Math.sin(i*1.7+seed)+1)/2;const yy=y+h*.75-i*h*.033-a*h*.3;d+=(i?'L':'M')+(x+i*w/15)+' '+yy;}return path(d,color,2.5);}
- function miniBars(x,y,w,h,count=14,color=accent){return Array.from({length:count},(_,i)=>{const bh=h*(.22+((i*7+5)%13)/17);return box(x+i*w/count,y+h-bh,w/count-4,bh,color,2)}).join('');}
- function candles(x,y,w,h){let out='';for(let i=0;i<26;i++){const v=(Math.sin(i*.7)+Math.cos(i*1.5)*.4)*h*.18;const yy=y+h*.66-i*h*.018+v;const up=i%3!==0,c=up?'#55d6b0':'#f47c90';out+=line(x+i*w/26+4,yy-10,x+i*w/26+4,yy+23,c)+box(x+i*w/26,yy,8,12+i%9,c,1);}return out;}
- function frame(nav=['Visão geral','Atividade','Histórico'],light=false){const bg=light?'#f2f4f8':'#101823',fg=light?'#243248':ink;let out=box(0,0,640,360,'#0b1018',0)+box(14,14,612,332,bg,12,edge)+box(14,14,612,30,light?'#fff':'#1c2534',12)+box(14,30,612,14,light?'#fff':'#1c2534',0);out+=dot(28,29,3,'#fa8a85')+dot(39,29,3,'#edc46d')+dot(50,29,3,'#72c89a')+txt(70,33,p.screen.slice(0,48),11,fg,650);out+=box(14,44,96,302,light?'#e7ebf1':'#141e2d',0);out+=box(27,59,68,24,accent,7)+txt(36,75,'Workspace',9,'#10151b',650);nav.forEach((label,i)=>{if(!i)out+=box(22,102+i*30,80,23,light?'#d5dee9':'#27364b',5);out+=txt(29,117+i*30,label,9,light?'#536278':muted)});out+=txt(126,70,p.subtitle.slice(0,62),10,light?'#617084':muted);return out;}
- function stats(labels,values,x=126,y=86,w=151){return labels.map((label,i)=>box(x+i*(w+10),y,w,56)+txt(x+i*(w+10)+12,y+18,label,9,muted)+txt(x+i*(w+10)+12,y+43,values[i],22,ink,650)).join('');}
- function rows(x,y,labels,width=460){return labels.map((label,i)=>line(x,y+i*28+22,x+width,y+i*28+22)+dot(x+7,y+i*28+9,3,i%2?accent:'#55d6b0')+txt(x+20,y+i*28+13,label,10,ink)+txt(x+width-48,y+i*28+13,['Ativo','Pronto','Revisão'][i%3],9,muted)).join('');}
- function breadShape(x,y,scale=1){return `<g transform="translate(${x} ${y}) scale(${scale})">`+box(0,10,98,62,'#bb793e',30)+path('M14 32c5-30 69-29 73 0','#e0ac70',17)+path('m31 17-8 20m29-22-9 24m29-19-9 22','#f3d8aa',4)+dot(14,48,1,'#f6e0ba')+dot(73,52,1,'#f6e0ba')+'</g>';}
- function person(x,y,s=1,color='#aec3df'){return `<g transform="translate(${x} ${y}) scale(${s})">`+dot(0,0,25,color)+path('M-39 70c1-63 77-63 78 0',color,1,color)+path('M-26-10c5-34 51-32 53 3-12-8-18-12-27-17-7 9-16 13-26 14','#3d4861',1,'#3d4861')+dot(-8,2,2,'#283044')+dot(8,2,2,'#283044')+path('M-6 15q6 5 12 0','#536984',2)+'</g>';}
- function cube(x,y,w=180,h=115){return path(`M${x} ${y}l${w*.6} -${h*.35} ${w*.4} ${h*.35} -${w*.6} ${h*.38}z`,accent,2,'#496179')+path(`M${x} ${y}v${h*.6}l${w*.4} ${h*.4}v-${h*.62}z`,'#60839d',2,'#263c51')+path(`M${x+w*.4} ${y+h*.38}l${w*.6} -${h*.38}v${h*.6}l-${w*.6} ${h*.4}z`,accent,2,'#345268');}
- let out='';
- if(p.type==='document'){
-  out=box(0,0,640,360,'#121b28',0)+`<ellipse cx="320" cy="180" rx="250" ry="158" fill="${accent}" opacity=".055"/>`;
-  out+=`<g transform="translate(256 32) rotate(8 65 115)">`+box(4,5,145,210,'#263446',12)+box(-8,-4,145,210,'#e8eef7',10)+path('M94-4v42h35','#bdcadc',2,'#bdcadc')+box(13,57,76,7,'#526a89',3)+lines(13,82,96,6,'#bdc8d8')+box(13,153,35,23,accent,5)+txt(23,169,'DOC',10,'#142033',700)+'</g>';
-  out+=txt(32,294,p.screen.slice(0,42),23,ink,650)+txt(32,319,p.subtitle.slice(0,76),12,muted);
- }else if(['trading','strategy','wallets','community'].includes(p.type)){
-  out=frame(p.type==='community'?['Comunidade','Mensagens','Membros']:['Dashboard','Posições','Histórico','Estratégias']);
-  if(p.type==='community'){
-   out+=stats(['Mensagens','Membros ativos','Engajamento'],['1.284','326','+18,4%']);out+=box(126,154,310,173)+txt(140,177,'Atividade da comunidade',12,ink,650)+miniBars(142,193,275,103,18);out+=box(447,154,162,173)+txt(460,178,'Canais mais ativos',11,ink,650);['mercado','análises','comunidade','estudos'].forEach((l,i)=>{out+=txt(461,205+i*28,'# '+l,10,muted)+box(461,213+i*28,105-i*19,4,accent,2)});
-  }else if(p.type==='wallets'){
-   out+=stats(['Carteiras acompanhadas','Score médio','Sinais hoje'],['128','82,6','24']);out+=box(126,154,483,173)+txt(140,178,'Carteiras em destaque',12,ink,650);['0xA71…4F2 · demo','0xB39…8C1 · demo','0xC82…9D3 · demo','0xD54…2A6 · demo'].forEach((l,i)=>{out+=txt(140,205+i*27,l,11,ink)+spark(321,186+i*27,100,25,i)+txt(462,205+i*27,['94 / 100','91 / 100','87 / 100','84 / 100'][i],10,accent)});
-  }else{
-   out+=stats(p.type==='strategy'?['Entradas analisadas','Win rate','Retorno líquido']:['Saldo de demonstração','Resultado no período','Posições abertas'],p.type==='strategy'?['2.480','62,4%','+12,8 R']:['$ 10.000','+3,8%','3']);out+=box(126,154,324,173)+txt(140,176,p.type==='strategy'?'BTC / USDT · Entradas':'BTC / USDT · 5 min',11,ink,650)+candles(141,194,291,93);if(p.type==='strategy')out+=dot(191,266,4,accent)+dot(323,231,4,accent);out+=txt(141,312,p.type==='strategy'?'Ideal  ·  Cedo  ·  Tarde  ·  Ruído':'Preço e volume · dados de exemplo',9,muted);out+=box(460,154,149,173)+txt(473,178,p.type==='strategy'?'Amostra selecionada':'Posições',11,ink,650);['BTC / USDT','ETH / USDT','SOL / USDT'].forEach((l,i)=>{out+=txt(473,207+i*38,l,10,ink)+txt(473,223+i*38,['LONG · +1,2%','LONG · +0,8%','SHORT · +0,6%'][i],9,'#55d6b0')});
+// Every UI preview is a script-free HTML/CSS fixture derived from that project's source.
+// Fixtures live only in the encrypted catalog. No project code, network requests or APIs run here.
+const previewResize = new ResizeObserver(entries => {
+  for (const {target} of entries) {
+    const width = Number(target.dataset.canvasWidth || 1120);
+    target.style.setProperty('--preview-scale', String(target.clientWidth / width));
   }
- }else if(['feed','mobile-feed'].includes(p.type)){
-  if(p.type==='feed'){
-   out=frame(['Mercado','Estudos','Altcoins','Trade','Biblioteca']);out+=txt(128,101,'Mercado',25,ink,700)+pill(523,96,'Filtrar');out+=box(126,120,295,195)+box(138,132,271,83,'#2b261f')+spark(150,143,247,61,5,accent)+txt(141,239,'Bitcoin: o contexto da semana',17,ink,650)+txt(141,261,'Estrutura de preço, volume e liquidez.',11,muted)+lines(141,279,246,2);out+=box(432,120,177,92)+txt(445,143,'Estudo de mercado',11,accent,650)+lines(445,159,145,3)+box(432,223,177,92)+txt(445,248,'Leituras selecionadas',11,ink,650)+lines(445,265,144,3);
-  }else{
-   const green=group==='Apps Mobile';const c=green?'#73b89a':accent;out=box(0,0,640,360,'#101924',0)+box(42,45,208,268,'#192738',20)+txt(62,80,'Conteúdo para acompanhar',16,ink,650)+txt(62,103,'Notícias e análises selecionadas',11,muted)+lines(62,125,158,4)+box(62,197,166,78,'#26394c',9)+spark(74,207,139,52,2,c);out+=box(282,13,228,334,'#070a0e',28)+box(291,23,210,314,'#121823',21)+box(361,29,70,12,'#050609',8)+txt(307,66,p.screen,22,ink,700)+txt(307,87,'Hoje · feed de demonstração',10,muted)+box(304,104,184,92,'#273342',10)+spark(316,116,158,65,3,c)+txt(307,218,green?'Destaques da comunidade':'O mercado em perspectiva',13,ink,650)+lines(307,234,168,3)+line(303,293,490,293)+txt(309,314,'Início    Estudos    Salvos',10,c,650);out+=dot(554,90,16,c)+txt(542,95,'01',12,'#10151b',700)+txt(535,133,'Feed',13,ink,650)+txt(535,151,'em uso',11,muted);
-  }
- }else if(p.type==='reader'){
-  out=box(0,0,640,360,'#d6cab6',0)+box(38,25,564,310,'#fcf6e9',16,'#bdad92')+line(320,53,320,313,'#e2d6be')+txt(66,62,'BÍBLIA DUO',12,'#7f6b50',700)+txt(66,94,'João 1',26,'#3f3a31',650)+txt(339,62,'LEITURA PARALELA',10,'#8b795f',650)+txt(339,94,'John 1',26,'#3f3a31',650);const pt=['1 No princípio era o Verbo,','e o Verbo estava com Deus.','2 Ele estava no princípio com Deus.','3 Todas as coisas foram feitas','por intermédio dele.'];const en=['1 In the beginning was the Word,','and the Word was with God.','2 He was with God in the beginning.','3 Through him all things were made.'];pt.forEach((l,i)=>out+=txt(66,135+i*24,l,12,'#625747'));en.forEach((l,i)=>out+=txt(339,135+i*24,l,12,'#625747'));out+=box(66,262,220,27,'#eddfba',5)+txt(76,280,'Português · capítulo 1',11,'#7d6744')+txt(339,280,'English · chapter 1',11,'#7d6744');
- }else if(p.type==='bread'){
-  out=box(0,0,640,360,'#e8e0d4',0)+box(31,26,368,308,'#fffaf2',14)+txt(54,61,'levain',25,'#514333',700)+txt(54,90,p.screen,17,'#73614e',650)+box(54,110,322,105,'#eee0c6',12)+breadShape(263,131,.8)+txt(71,139,'Seu fermento está ativo',15,'#73532f',650)+txt(71,162,'Última alimentação · 09:00',11,'#9b805d')+pill(71,189,'Próxima alimentação', '#dbb77c')+txt(54,249,'Continue sua fornada',15,'#514333',650)+box(54,264,153,47,'#eee9df',8)+txt(66,286,'Pão de campo',12,'#67543d',650)+txt(66,302,'75% de hidratação',9,'#a08c73')+box(221,264,155,47,'#eee9df',8)+txt(233,286,'Diário do levain',12,'#67543d',650)+txt(233,302,'3 registros nesta semana',9,'#a08c73');out+=box(421,50,182,268,'#aa8156',18)+breadShape(457,126,1.1)+txt(446,91,'Receita em destaque',13,'#fff3dc',650)+txt(446,253,'Fornada de domingo',15,'#fff3dc',650)+txt(446,277,'Fermentação lenta · 24 h',10,'#ead7bb');
- }else if(p.type==='calculator'){
-  out=frame(['Resultado','Seu perfil','Histórico'],true)+txt(128,101,'Seu resultado',23,'#273953',650);out+=stats(['Meta calórica','Taxa metabólica','Água por dia'],['2.180 kcal','1.620 kcal','2,5 L']);out+=box(126,154,483,173,'#fff',10)+txt(145,180,'Macronutrientes',15,'#273953',650);[['Carboidratos','245 g','#6aaaff'],['Proteínas','136 g','#b69aff'],['Gorduras','72 g','#e9bc7f']].forEach(([l,v,c],i)=>{out+=txt(145,209+i*35,l,12,'#617084')+box(262,197+i*35,220-i*42,15,c,7)+txt(535,209+i*35,v,12,'#273953',650)});
- }else if(p.type==='patients'){
-  out=frame(['Dashboard','Pacientes','Agenda','Relatórios'],true)+stats(['Pacientes ativos','Consultas hoje','Retornos'],['42','6','12']);out+=box(126,156,483,173,'#fff',9)+txt(142,180,'Próximas consultas',14,'#30413a',650);['Paciente de exemplo A','Paciente de exemplo B','Paciente de exemplo C'].forEach((l,i)=>{out+=dot(154,210+i*37,11,'#c4dfd1')+txt(176,208+i*37,l,11,'#415c50',650)+txt(176,224+i*37,'Acompanhamento nutricional',9,'#91a69b')+txt(535,214+i*37,['10:00','11:30','14:00'][i],12,'#608b73')});
- }else if(['nutrition','clinic'].includes(p.type)){
-  out=box(0,0,640,360,'#f1eee7',0)+box(23,22,594,316,'#fffdf9',12)+txt(44,54,p.type==='clinic'?'Consultórios na Trindade':'Carol Agostini',19,'#496556',650)+txt(413,53,'Sobre    Serviços    Contato',10,'#81988c')+line(44,69,595,69,'#e3e9e2')+txt(44,103,p.screen,22,'#496556',650)+txt(44,124,p.type==='clinic'?'Ambientes pensados para acolher.':'Cuidado e nutrição para a sua rotina.',12,'#8b998e');['Acompanhamento','Planos individuais','Seu espaço de cuidado'].forEach((l,i)=>{const x=44+i*184;out+=box(x,148,169,163,['#e4ebe0','#e7e3d8','#dbe8e1'][i],10);if(p.type==='clinic'){out+=box(x+16,170,136,91,'#c5d2c8',6)+box(x+31,214,107,32,'#f2f1e7',3)+box(x+93,182,30,58,'#a8b9ac',4)}else{out+=dot(x+83,207,40,'#bfd4be')+path(`M${x+64} 222q-6-52 40-40-2 40-40 40`, '#7e9f7f',2,'#8fb08e')}out+=txt(x+14,287,l,11,'#55715d',650)});
- }else if(['cad','emboss','furniture'].includes(p.type)){
-  out=frame(p.type==='furniture'?['Projeto','Materiais','Plano de corte']:['Seu modelo','Dimensões','Exportar']);out+=box(126,84,146,243)+txt(139,107,p.type==='furniture'?'Parâmetros do móvel':'Parâmetros do modelo',11,ink,650);const labels=p.type==='furniture'?['Largura · 800 mm','Altura · 720 mm','MDF · 18 mm','Acabamento · natural']:p.type==='emboss'?['Arte · monograma.svg','Placa · 60 × 40 mm','Material · papel 300 g','Relevo · 1,2 mm']:['Contorno · formas.svg','Caixa · 3 × 2 grid','Profundidade · 18,8 mm','Folga · 0,2 mm'];labels.forEach((l,i)=>{out+=txt(139,136+i*39,l,9,muted)+box(139,144+i*39,116,18,'#243248',4)});out+=box(284,84,325,243,'#1c293a',8)+txt(300,108,p.type==='furniture'?'Projeto 3D':'Preview 3D',12,ink,650);for(let i=0;i<8;i++)out+=line(297,186+i*17,598,146+i*17,'#2b3d51');if(p.type==='cad'){out+=cube(336,190,198,108)+path('M349 191l105-30 60 30-105 34z','#aec6d6',7,'#172332')+dot(394,188,13,'#718eaa')+dot(450,182,10,'#718eaa')+box(403,195,24,12,'#718eaa',4)}else if(p.type==='emboss'){out+=cube(320,230,124,58)+cube(449,181,119,55)+txt(333,240,'VR',22,'#b8cce0',700)+txt(467,195,'VR',22,'#b8cce0',700)}else{out+=box(355,140,158,126,'#aa8a64',1,'#dec49d')+box(366,149,136,107,'#3f3830',1)+box(367,196,134,6,'#bc9b75',0)+box(420,149,6,108,'#bc9b75',0)+box(355,266,9,23,'#b2936d',0)+box(504,266,9,23,'#b2936d',0)}out+=pill(480,312,p.type==='furniture'?'Plano de corte':'Exportar 3MF');
- }else if(['editor','report'].includes(p.type)){
-  out=frame(p.type==='report'?['Documento','Gráficos','Exportar PDF']:['Documentos','Rascunhos','Publicados']);out+=box(126,84,239,243,'#f5f2eb',7)+txt(140,106,p.type==='report'?'RELATÓRIO SEMANAL':'T   B   I   ↗   +',10,'#766b61',650)+txt(141,138,p.type==='report'?'Visão de mercado':'O mercado em perspectiva',16,'#303949',650)+lines(141,157,200,4,'#c9c9cb')+box(141,208,206,78,'#e1e5e9',6)+spark(151,218,185,54,3,'#7986bd')+lines(141,299,180,2,'#c9c9cb');out+=box(379,84,230,243,'#1d293a',7)+txt(393,107,'Pré-visualização',12,ink,650)+box(397,124,194,86,'#2b384e',8)+spark(408,136,169,57,4,accent)+txt(396,235,'Conteúdo em edição',14,ink,650)+lines(396,252,184,4)+pill(528,314,p.type==='report'?'PDF':'Publicar');
- }else if(p.type==='kanban'){
-  out=frame(['Quadro','Agentes','Rotinas']);['A fazer','Em andamento','Concluído'].forEach((title,i)=>{const x=126+i*162;out+=box(x,86,151,241,'#182436',8)+txt(x+12,109,title,12,ink,650);['Revisar interface','Organizar tarefas','Validar entrega'].slice(0,3-i%2).forEach((label,j)=>{out+=box(x+9,125+j*61,133,51,'#25344a',7)+txt(x+19,145+j*61,label,10,ink,650)+txt(x+19,163+j*61,'Projeto de exemplo',8,muted)})});
- }else if(p.type==='chat'){
-  out=frame(['Sessão atual','Memória','Rotinas']);out+=txt(130,104,'Claude Bot · sessão de trabalho',18,ink,650)+box(233,124,365,52,'#2b4e61',10)+txt(249,146,'Pode revisar as tarefas do projeto?',13,ink)+txt(249,164,'Mensagem de demonstração',9,'#a1bac8')+box(127,190,404,99,'#243148',10)+txt(143,214,'Revisei o quadro e organizei as prioridades.',12,ink)+txt(143,239,'1. Conferir a interface principal',11,muted)+txt(143,260,'2. Validar as alterações e atualizar a entrega',11,muted)+box(127,306,471,22,'#1c2b3f',9)+txt(140,321,'Enviar uma mensagem…',10,muted);
- }else if(p.type==='accounts'){
-  out=frame(['Claude','Codex','Settings']);out+=txt(128,103,'Consumo semanal',20,ink,650)+box(126,118,220,207)+`<circle cx="236" cy="201" r="53" fill="none" stroke="#304156" stroke-width="14"/><circle cx="236" cy="201" r="53" fill="none" stroke="${accent}" stroke-width="14" stroke-dasharray="180 333" transform="rotate(-90 236 201)"/>`+txt(205,209,'54%',30,ink,650)+txt(167,291,'Ritmo dentro do esperado',11,muted)+box(359,118,250,207)+txt(374,144,'Configured Accounts',14,ink,650)+rows(374,163,['Conta pessoal · exemplo','Conta de trabalho · exemplo'],216)+pill(374,286,'Trocar conta');
- }else if(p.type==='invoice'){
-  out=frame(['Invoices','Histórico','Clientes'],true)+box(126,85,227,242,'#fff',7)+txt(141,109,'Nova invoice',18,'#243248',650);['Cliente · Projeto Exemplo','Serviço · Desenvolvimento','Período · Novembro','Valor · USD 1.500,00'].forEach((l,i)=>{out+=txt(141,139+i*34,l,10,'#6d7b90')+box(141,147+i*34,193,17,'#edf0f5',4)});out+=pill(141,306,'Gerar PDF');out+=box(368,85,241,242,'#e2e7ee',6)+box(397,99,181,213,'#fff',1)+txt(413,127,'INVOICE',18,'#26344a',650)+txt(413,150,'Projeto Exemplo',10,'#8795a7')+lines(413,174,144,5,'#d8e0e8')+line(413,237,562,237,'#d8e0e8')+txt(413,259,'TOTAL',10,'#8795a7')+txt(475,259,'$ 1.500',14,'#26344a',650);
- }else if(p.type==='map'){
-  out=frame(['Roteiro','Lugares salvos','Mapa'],true)+box(126,85,175,242,'#fff',8)+txt(140,109,'3 dias de viagem',16,'#344355',650);['Dia 1 · Centro histórico','Dia 2 · Museus e cafés','Dia 3 · Parque e mirante'].forEach((l,i)=>{out+=dot(145,143+i*57,6,accent)+txt(159,146+i*57,l,10,'#596879')+txt(159,163+i*57,'Lugares e horários salvos',8,'#9aa8b4')});out+=box(313,85,296,242,'#dce5dc',8);for(let i=0;i<9;i++)out+=path(`M${319+i*37} 85l-40 242`,'#f5f2dd',8);for(let i=0;i<6;i++)out+=path(`M313 ${103+i*43}l296 20`,'#f5f2dd',7);out+=path('M352 276 395 219 474 188 552 134', '#648fc4',4);[[352,276],[395,219],[474,188],[552,134]].forEach(([x,y],i)=>out+=dot(x,y,12,'#6d91bd')+txt(x-3,y+4,String(i+1),11,'white',700));
- }else if(['characters','faces'].includes(p.type)){
-  out=frame(['Prévia','Expressões','Exportar']);out+=box(126,85,300,242,'#26344b',8)+person(273,170,1.35,p.type==='faces'?'#d8b9a2':'#f2c88c')+box(438,85,171,242)+txt(451,110,p.type==='faces'?'Configuração':'Controles faciais',12,ink,650);['Expressão','Intensidade','Olhar','Pose'].forEach((l,i)=>{out+=txt(451,142+i*40,l,10,muted)+box(451,152+i*40,139,4,'#37465f',2)+box(451,152+i*40,48+i*17,4,accent,2)+dot(499+i*17,154+i*40,5,accent)});out+=pill(451,314,p.type==='faces'?'Prévia':'Exportar');
- }else if(p.type==='vitalis'){
-  out=box(0,0,640,360,'#17263b',0)+box(48,37,252,286,'#20344b',18)+txt(69,76,'Today',28,ink,650)+txt(69,99,'YOUR DAILY OVERVIEW',9,muted,650)+box(69,118,210,151,'#2a425d',14)+txt(88,145,"TODAY’S BLAST",11,'#b8d5e5',650)+path('M101 231a72 72 0 0 1 143 0','#3d5974',13)+path('M101 231a72 72 0 0 1 88-70','#6ccee7',13)+txt(137,221,'2.4',37,ink,650)+txt(165,245,'PSI',11,'#9fbccc',650)+txt(70,296,'14-day average · 1.8 PSI',11,muted);out+=box(323,61,266,111,'#263d56',15)+txt(345,88,'Exposure history',14,ink,650)+miniBars(345,104,218,44,14,'#77bfd9')+box(323,188,266,111,'#263d56',15)+txt(345,215,'Widgets',14,ink,650)+box(345,232,102,43,'#33506c',9)+box(458,232,108,43,'#33506c',9)+txt(358,258,'Activity',11,'#c9dce8')+txt(471,258,'Trends',11,'#c9dce8');
- }else if(['games','music','vault'].includes(p.type)){
-  out=frame(p.type==='games'?['Biblioteca','Recentes','Favoritos']:p.type==='music'?['Your Music','Playlists','Settings']:['Meu cofre','Coleções','Recentes']);out+=txt(128,104,p.screen,23,ink,650)+txt(128,125,p.type==='games'?'Todos   NES   SNES   GB   GBA':p.type==='music'?'3 songs · stored on this Vision Pro':'Arquivos e coleções · dados de exemplo',10,muted);
-  if(p.type==='music'){
-   ['Night Run','Pulse Grid','Neon Steps'].forEach((label,i)=>{out+=box(127,143+i*58,482,48)+box(137,150+i*58,35,34,['#52447d','#315c75','#74503b'][i],6)+spark(141,157+i*58,27,18,i,'#cee0ed')+txt(185,164+i*58,label,13,ink,650)+txt(185,180+i*58,['120 BPM · 03:24','128 BPM · 02:56','115 BPM · 04:10'][i],9,muted)+pill(530,170+i*58,'Jogar')});
-  }else{
-   const labels=p.type==='games'?['Pixel Island','Moon Runner','Pocket Quest','Tiny Racer','Star Garden','Orbit Jump']:['Documentos','Fotos pessoais','Projetos','Notas','Arquivos','Coleções'];for(let i=0;i<6;i++){const x=127+(i%3)*163,y=143+Math.floor(i/3)*92;out+=box(x,y,152,82,['#33465f','#3c3558','#2b555a','#554b40','#354a64','#4b3d59'][i],9);if(p.type==='games'){for(let j=0;j<6;j++)out+=box(x+12+j*19,y+24+(j%3)*7,14,14,['#abc376','#d5b06d','#a7bcde'][j%3],0);out+=txt(x+11,y+70,labels[i],10,ink,650)}else{out+=path(`M${x+16} ${y+18}h25l7 8h29v23h-61z`,accent,1,'#526b84')+txt(x+13,y+70,labels[i],10,ink,650)}}
-  }
- }else if(p.type==='aquarium'){
-  out=box(0,0,640,360,'#102a3d',0)+`<defs><linearGradient id="water" x2="0" y2="1"><stop stop-color="#5a9bb6"/><stop offset="1" stop-color="#102e45"/></linearGradient></defs>`+box(23,22,594,316,'url(#water)',20,'#a0d4df')+path('M24 310q160-25 292 0t300 0v28H24z','#9f9278',1,'#9f9278');for(let i=0;i<10;i++){let x=50+i*57;out+=path(`M${x} 311q-20-38 0-64t-5-62`,i%2?'#428a7f':'#327869',7)}for(let i=0;i<8;i++){const x=96+(i*79)%475,y=92+(i*43)%146;out+=`<g transform="translate(${x} ${y}) ${i%2?'scale(-1 1)':''}">`+`<ellipse rx="22" ry="10" fill="${['#ecb759','#d9e6ea','#e87d6e'][i%3]}"/>`+path('M-20 0l-12-10v20z','#c68259',1,'#c68259')+dot(12,-2,2,'#253c48')+'</g>';}out+=box(178,269,284,39,'#1d3c4b',18,'#7fa8b5')+txt(205,294,'Aquarium   ·   8 peixes   ·   Ambiente',12,'#d6f0f2',650);
- }else if(p.type==='bubbles'){
-  out=box(0,0,640,360,'#1c2c40',0)+box(40,34,560,289,'#293e56',28,'#6d8ba7');[[231,151,65],[366,178,48],[312,100,33]].forEach(([x,y,r],i)=>{out+=`<defs><radialGradient id="sphere${i}" cx=".3" cy=".2"><stop stop-color="#b3f2f1" stop-opacity=".8"/><stop offset="1" stop-color="#387e9c" stop-opacity=".5"/></radialGradient></defs>`+dot(x,y,r,`url(#sphere${i})`)+`<circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="#a3deed" stroke-opacity=".6"/>`});out+=box(142,265,356,40,'#52677b',20,'#8b9bab')+txt(167,291,'Reduzir conteúdo     ·     Espaço imersivo',12,'#e7f0f7',650)+txt(56,62,'RealityView · cena volumétrica',12,'#b2c8dc');
- }else if(p.type==='ticket'){
-  out=box(0,0,640,360,'#211c35',0)+`<defs><linearGradient id="holo"><stop stop-color="#b3e5ed"/><stop offset=".35" stop-color="#baa5ee"/><stop offset=".7" stop-color="#f4d1c3"/><stop offset="1" stop-color="#91dfd3"/></linearGradient></defs>`+box(57,64,526,232,'url(#holo)',22)+txt(83,102,'PARADIGMA',14,'#564878',700)+txt(83,148,'COQUETEL',39,'#3b3457',750)+txt(83,182,'Um encontro para conectar ideias.',15,'#685d83')+line(85,203,553,203,'#9b8cb5')+txt(84,236,'CONVIDADO DE EXEMPLO',12,'#615278',650)+txt(84,262,'ACESSO INDIVIDUAL · 001',10,'#78668a');for(let i=0;i<23;i++)out+=box(424+i*5,221,i%3===0?3:1,39,'#796b90',0);
- }else if(p.type==='downloads'){
-  out=frame(['Cursos','Downloads','Arquivos']);out+=txt(128,103,'Seus downloads',23,ink,650);['Módulo 01 · Introdução','Módulo 02 · Fundamentos','Módulo 03 · Prática'].forEach((l,i)=>{out+=box(126,125+i*65,483,55)+txt(141,147+i*65,l,12,ink,650)+txt(141,165+i*65,['4 aulas · concluído','6 aulas · 68%','5 aulas · na fila'][i],10,muted)+box(406,145+i*65,181,5,'#34455d',2)+box(406,145+i*65,[181,123,0][i],5,accent,2)});
- }else if(['portfolio','portal'].includes(p.type)){
-  out=frame(p.type==='portal'?['Todas','Apps Web','Trading','Vision OS']:['Projetos','Sobre','Contato']);out+=txt(128,104,p.screen,23,ink,650);['Aplicações web','Experiências espaciais','Interfaces e produtos','Ferramentas de criação'].forEach((l,i)=>{const x=126+i%2*246,y=125+Math.floor(i/2)*100;out+=box(x,y,236,89,['#354661','#3d355d','#274b57','#4d443d'][i],9)+box(x+13,y+13,45,45,['#607ba6','#957bc1','#63a6b7','#c3a47c'][i],12)+txt(x+71,y+34,l,11,ink,650)+txt(x+71,y+53,'Projeto em destaque',9,'#b5c0d2')});
- }else{
-  out=frame()+stats(['Visão geral','Atividade','Projetos'],['24','128','6'])+box(126,155,483,172)+spark(144,178,445,123,1);
- }
- const footer=p.type==='document'?'ILUSTRAÇÃO DOCUMENTAL':'PRÉVIA ILUSTRATIVA · DADOS FICTÍCIOS';
- return `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360"><title>${esc(p.screen)} — ${esc(footer)}</title>${out}${txt(28,351,footer,7,'#8291a8',600)}</svg>`;
+});
+function documentPreview(entry, group) {
+  const escape = value => String(value ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
+  const title=entry.preview?.screen||entry.displayName||entry.name;
+  const subtitle=entry.preview?.subtitle||'Documentação e materiais do projeto';
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="400" viewBox="0 0 640 400"><rect width="640" height="400" fill="#121b28"/><ellipse cx="320" cy="185" rx="250" ry="158" fill="${themes[group].accent}" opacity=".055"/><g transform="translate(256 38) rotate(8 65 115)"><rect x="4" y="5" width="145" height="210" rx="12" fill="#263446"/><rect x="-8" y="-4" width="145" height="210" rx="10" fill="#e8eef7"/><path d="M94-4v42h35" fill="#bdcadc"/><path d="M13 60h76M13 87h96M13 100h80M13 113h92M13 126h74M13 139h88" stroke="#bdc8d8" stroke-width="4"/><rect x="13" y="157" width="35" height="23" rx="5" fill="${themes[group].accent}"/><text x="20" y="173" fill="#142033" font-family="system-ui" font-size="10" font-weight="700">DOC</text></g><text x="32" y="321" fill="#e9edf5" font-family="system-ui" font-size="23" font-weight="650">${escape(title)}</text><text x="32" y="347" fill="#94a1b6" font-family="system-ui" font-size="12">${escape(subtitle)}</text><text x="32" y="381" fill="#8291a8" font-family="system-ui" font-size="7">ILUSTRAÇÃO DOCUMENTAL</text></svg>`;
+}
+function createMockFrame(entry, expanded=false) {
+  const wrap=element('div',null,expanded?'expanded-mock-canvas':'mock-canvas');
+  const width=entry.preview.width||1120,height=entry.preview.height||700;
+  wrap.dataset.canvasWidth=String(width);
+  wrap.style.aspectRatio=`${width} / ${height}`;
+  const frame=document.createElement('iframe');
+  frame.title='Mock da interface de '+(entry.displayName||entry.name)+' — dados fictícios';
+  frame.setAttribute('sandbox','');
+  frame.setAttribute('referrerpolicy','no-referrer');
+  frame.setAttribute('aria-hidden','true');
+  frame.tabIndex=-1;frame.loading='lazy';
+  frame.width=String(width);frame.height=String(height);
+  const fonts=(entry.preview.fonts||[]).map(name=>catalog.assets?.fonts?.[name]||'').join('\n');
+  frame.srcdoc=entry.preview.html.replace('</head>','<style>'+fonts+'</style></head>');
+  wrap.append(frame);previewResize.observe(wrap);
+  return wrap;
 }
 function mockPreview(entry,group){
- const button=element('button',null,'preview-banner');button.type='button';
- const docs=entry.preview?.type==='document';
- const title=entry.displayName||entry.name;button.setAttribute('aria-label','Ampliar '+(docs?'banner documental':'prévia ilustrativa')+' de '+title);
- button.title='Ampliar prévia';const img=element('img');img.alt=docs?'Ilustração de documento: '+title:'Mock da tela principal de '+title+' com dados fictícios';
- img.width=640;img.height=360;img.decoding='async';img.loading='lazy';img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(previewSVG(entry,group));
- const caption=element('span',docs?'Documentação':'Mock · tela principal','preview-label');button.append(img,caption);
- button.addEventListener('click',()=>{const dialog=$('#preview-dialog');$('#preview-title').textContent=title;const expanded=$('#preview-image');expanded.src=img.src;expanded.alt=img.alt;$('#preview-note').textContent=docs?'Ilustração de documentação do projeto.':'Prévia ilustrativa baseada na interface do projeto, com dados fictícios.';dialog.showModal()});
- return button;
+  const button=element('button',null,'preview-banner');button.type='button';
+  const docs=entry.preview?.type==='document',name=entry.displayName||entry.name;
+  button.setAttribute('aria-label','Ampliar '+(docs?'banner documental':'mock HTML/CSS')+' de '+name);
+  button.title='Ampliar prévia';
+  let img;
+  if(docs){img=element('img');img.alt='Ilustração de documento: '+name;img.width=640;img.height=400;img.loading='lazy';img.decoding='async';img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(documentPreview(entry,group));button.append(img)}
+  else if(entry.preview?.html){button.append(createMockFrame(entry))}
+  else{throw new Error('Prévia HTML/CSS ausente: '+entry.name)}
+  button.append(element('span',docs?'Documentação':'Mock HTML/CSS · dados fictícios','preview-label'));
+  button.addEventListener('click',()=>{
+    const dialog=$('#preview-dialog'),content=$('#preview-content');
+    content.querySelectorAll('.expanded-mock-canvas').forEach(node=>previewResize.unobserve(node));
+    content.replaceChildren();$('#preview-title').textContent=name;
+    if(docs){const expanded=element('img');expanded.src=img.src;expanded.alt=img.alt;content.append(expanded)}else{content.append(createMockFrame(entry,true))}
+    $('#preview-note').textContent=docs?'Ilustração de documentação do projeto.':'Mock estático em HTML/CSS, com a estrutura e os estilos do aplicativo e dados fictícios.';
+    dialog.showModal();
+  });return button;
 }
