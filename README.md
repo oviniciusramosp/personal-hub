@@ -35,3 +35,5 @@ Suporte: hello@viniciusramos.com
 ## Categorias
 
 A interface agrupa os projetos em Crypto Bros, Paradigma, Apps Web, Apps Mobile, Vision OS e Outros. A busca e os filtros de publicação e privacidade funcionam dentro de cada categoria. As regras usam nomes dos projetos; `category` em uma entrada do catálogo pode sobrescrever a classificação.
+
+Os detalhes editoriais de cada projeto (nome de exibição, descrição e motivo do ícone) são preservados em `.local/project-details.json`, fora do código público, e mesclados por `npm run sync`. Os ícones são SVGs originais montados por projeto, sem requisições a serviços de imagens. Cada categoria tem um carrossel com navegação por botões, teclado e rolagem por toque, respeitando a preferência por redução de movimento.
